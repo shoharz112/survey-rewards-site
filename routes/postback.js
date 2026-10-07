@@ -8,6 +8,8 @@
 // Where:
 //   user_id     - the ext_user_id we passed in the offerwall iframe (our user id)
 //   amount      - publisher earnings for this conversion, in USD
+//                 (the dashboard placeholder table also lists this as
+//                 {amount_usd} — both are accepted)
 //   amount_local- publisher earnings in the publisher's CPX dashboard currency
 //   trans_id    - CPX Research transaction ID (unique per conversion)
 //   secure_hash - md5("{user_id}-{app_secure_hash}") using the RAW user_id
@@ -47,8 +49,10 @@ router.get('/cpx', (req, res) => {
     // --- Validate input (never crash on bad input) ---
     const rawUserId = String(q.user_id ?? '').trim();
     const user_id = parseInt(rawUserId, 10);
-    const amount = parseFloat(q.amount);
-    const amountLocal = parseFloat(q.amount_local);
+    // Accept amount, amount_usd (dashboard placeholder name), or amount_local.
+    const usd = [q.amount, q.amount_usd, q.amount_local]
+      .map((v) => parseFloat(v))
+      .find((v) => Number.isFinite(v));
     const transId = String(q.trans_id ?? '').trim();
     const secure_hash = String(q.secure_hash ?? '').trim().toLowerCase();
 
@@ -82,8 +86,7 @@ router.get('/cpx', (req, res) => {
     }
 
     // --- Compute points (USD earnings -> site points) ---
-    const usd = Number.isFinite(amount) ? amount : amountLocal;
-    if (!Number.isFinite(usd) || usd < 0)
+    if (usd === undefined || usd < 0)
       return res.status(400).send('Bad request: invalid amount');
     const points = Math.round(usd * config.pointsPerUsd);
 
