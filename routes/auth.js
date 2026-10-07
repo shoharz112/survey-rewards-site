@@ -76,7 +76,19 @@ router.post('/login', authLimiter, async (req, res, next) => {
     if (!user || !user.password_hash) return fail();
     if (!(await bcrypt.compare(password, user.password_hash))) return fail();
 
-    req.login(user, (err) => (err ? next(err) : res.redirect(nextUrl)));
+    // "Remember me": checked = stay logged in for 30 days; unchecked = the
+    // login lasts only until the browser is closed. Set after req.login()
+    // so it applies to the final (regenerated) session.
+    const remember = req.body.remember === '1';
+    req.login(user, (err) => {
+      if (err) return next(err);
+      if (remember) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+      } else {
+        req.session.cookie.expires = false; // browser-session cookie
+      }
+      res.redirect(nextUrl);
+    });
   } catch (err) {
     next(err);
   }
