@@ -28,9 +28,9 @@ are created automatically on first boot.
 | `GOOGLE_CLIENT_SECRET` | For Google login | _(empty)_ | From Google Cloud Console. **Never commit or share.** |
 | `GOOGLE_CALLBACK_URL` | No | `BASE_URL + /auth/google/callback` | Must exactly match the redirect URI registered in Google Cloud Console. |
 | `CPX_APP_ID` | For live offerwall | _(empty)_ | Your CPX Research publisher App ID. Empty = Earn page shows the setup guide. |
-| `CPX_OFFERWALL_URL` | No | `https://offerwall.cpx-research.com` | Base offerwall URL from your CPX publisher dashboard. |
-| `CPX_SECURE_KEY` | For postbacks | _(empty)_ | Shared secret used to verify CPX postback signatures. **Never commit or log.** |
-| `POINTS_PER_USD` | No | `100` | Points per 1 USD — used for display (estimated USD value on Redeem page). |
+| `CPX_OFFERWALL_URL` | No | `https://offers.cpx-research.com/index.php` | Base offerwall URL from your CPX publisher dashboard (INFO tab). |
+| `CPX_SECURE_KEY` | For postbacks | _(empty)_ | App secure hash from the CPX dashboard INFO tab. Used to verify postback signatures and to sign the iframe URL. **Never commit or log.** |
+| `POINTS_PER_USD` | No | `100` | Points credited per 1 USD of CPX earnings on the postback. |
 | `SITE_NAME` | No | `SurveyRewards` | Brand name shown in the UI. |
 | `NODE_ENV` | No | `development` | Set to `production` on your host. |
 
@@ -67,36 +67,36 @@ Takes ~10 minutes; you only do it once.
 You don't build the survey inventory yourself — you embed CPX's offerwall as a
 publisher and earn a revenue share.
 
-1. **Sign up** at https://cpx-research.com as a **publisher** and get approved
-   (they review your site; having Privacy/Terms pages helps).
-2. In your CPX publisher dashboard, find your **App ID** and the **offerwall URL**.
-   Set in `.env`:
+1. **Sign up** at https://publisher.cpx-research.com as a **publisher** and get
+   approved (they review your site; having Privacy/Terms pages helps).
+2. In your CPX publisher dashboard, go to **Apps → My Apps → your app → INFO
+   tab**. Note your **App ID** ("YOUR APP ID IS: ...") and the **app secure
+   hash** (shown in the Example PHP). Set in `.env`:
    ```
-   CPX_APP_ID=your-app-id
-   CPX_OFFERWALL_URL=https://offerwall.cpx-research.com   # use exactly what CPX gives you
+   CPX_APP_ID=36996
+   CPX_OFFERWALL_URL=https://offers.cpx-research.com/index.php
+   CPX_SECURE_KEY=<app secure hash from the INFO tab>
    ```
-   Restart — the **Earn** page now renders the live iframe, passing each logged-in
-   user's id as `user_id` so completions credit the right person.
-3. **Postback URL** (this is how users get paid): in the CPX dashboard, set your
-   postback/callback URL to:
+   Restart — the **Earn** page now renders the live iframe, passing each
+   logged-in user's id as `ext_user_id`, a `secure_hash` of
+   `md5("{user_id}-{CPX_SECURE_KEY}")`, plus their name and email so CPX can
+   match duplicate users.
+3. **Postback URL** (this is how users get paid): in the CPX dashboard, open
+   your app → **POSTBACK SETTINGS tab** and set the **Main Postback URL** to:
    ```
-   https://YOUR-DOMAIN/api/postback/cpx
+   https://YOUR-DOMAIN/api/postback/cpx?user_id={user_id}&amount={amount}&amount_local={amount_local}&trans_id={trans_id}&subid_1={subid_1}&subid_2={subid_2}&secure_hash={secure_hash}
    ```
    When a user finishes a survey, CPX calls this URL server-to-server with
-   `user_id`, `amount_local` (points), `amount_usd`, `type` (Complete/Out/Bonus),
-   `offer_id`, `subid`, `subid_2`, `ip_click`, and `secure_hash`.
-4. **Signature verification**: copy the secure key into `.env` as `CPX_SECURE_KEY`.
-   This app verifies every postback as:
-   ```
-   secure_hash == md5("user_id|amount_local|amount_usd|type|offer_id|subid|subid_2|ip_click|" + CPX_SECURE_KEY)
-   ```
-   using the raw query-string values and a timing-safe comparison. **The exact
-   field order must match what CPX signs** — configure the same template in your
-   CPX dashboard, or adjust the `payload` construction in `routes/postback.js`.
-5. **How crediting works**: `type=Complete` (or `Bonus`) credits `amount_local`
-   points to the user's ledger (`reason: cpx_postback`). `type=Out`
-   (screened out) earns nothing. Each credit carries a unique `ref_key`
-   (`cpx:user_id:offer_id:type:amount`), so if CPX retries a postback, the
+   `user_id` (your ext_user_id), `amount` (USD earnings), `amount_local`
+   (earnings in dashboard currency), `trans_id` (CPX transaction id),
+   `subid_1`, `subid_2`, and `secure_hash`.
+4. **Signature verification**: this app verifies every postback as
+   `secure_hash == md5("{user_id}-{CPX_SECURE_KEY}")` using the raw `user_id`
+   string exactly as CPX sent it, with a timing-safe comparison.
+5. **How crediting works**: each postback credits
+   `round(usd_amount × POINTS_PER_USD)` points to the user's ledger (USD taken
+   from `amount`, falling back to `amount_local`). Each credit carries a unique
+   `ref_key` (`cpx:trans:{trans_id}`), so if CPX retries a postback, the
    duplicate is acknowledged but **not double-credited**.
 6. Use CPX's **design settings** to match the wall's colors to your brand, and run
    a test completion before going live.

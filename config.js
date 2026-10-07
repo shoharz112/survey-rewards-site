@@ -44,7 +44,7 @@ const config = {
 
   cpx: {
     appId: process.env.CPX_APP_ID || '',
-    offerwallUrl: (process.env.CPX_OFFERWALL_URL || 'https://offerwall.cpx-research.com').replace(/\/$/, ''),
+    offerwallUrl: (process.env.CPX_OFFERWALL_URL || 'https://offers.cpx-research.com/index.php').replace(/\/$/, ''),
     secureKey: process.env.CPX_SECURE_KEY || '',
   },
 
