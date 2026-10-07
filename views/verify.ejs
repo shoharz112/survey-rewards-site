@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+
+<form class="auth card" action="/auth/verify" method="post">
+  <h2>Check your email</h2>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (notice) { %><div class="alert alert-info"><%= notice %></div><% } %>
+  <p style="color:var(--muted); font-size:.95rem;">
+    We sent a 6-digit verification code to
+    <% if (email) { %><strong><%= email %></strong><% } else { %>your email address<% } %>.
+    Enter it below to confirm your account.
+  </p>
+  <input type="hidden" name="email" value="<%= email %>">
+  <label for="code">Verification code</label>
+  <input id="code" name="code" type="text" required inputmode="numeric" pattern="[0-9]{6}"
+         maxlength="6" autocomplete="one-time-code" placeholder="••••••"
+         style="font-size:1.5rem; letter-spacing:.4em; text-align:center;">
+  <button class="btn" type="submit" style="width:100%; margin-top:1rem;">Confirm</button>
+</form>
+
+<form class="auth card" action="/auth/verify/resend" method="post" style="margin-top:0;">
+  <input type="hidden" name="email" value="<%= email %>">
+  <p style="color:var(--muted); font-size:.9rem; text-align:center;">
+    Didn't get the code? It expires after 15 minutes.
+  </p>
+  <button class="btn btn-ghost" type="submit" style="width:100%;">Resend code</button>
+</form>
+
+<%- include('partials/footer') %>

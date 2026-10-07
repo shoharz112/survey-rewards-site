@@ -49,7 +49,28 @@ const config = {
   },
 
   pointsPerUsd: parseFloat(process.env.POINTS_PER_USD || '100'),
+
+  // Outgoing email (verification codes). Uses SMTP via nodemailer.
+  // For Gmail: host=smtp.gmail.com, port=587, secure=false, user=your Gmail,
+  // pass=a Gmail App Password (Google Account → Security → 2-Step Verification
+  // → App passwords). If not configured, codes are logged to the console
+  // (dev mode) instead of emailed.
+  mail: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.MAIL_FROM || process.env.SMTP_USER || '',
+  },
 };
+
+config.mail.configured = Boolean(
+  config.mail.host && config.mail.user && config.mail.pass
+);
+if (!config.mail.configured) {
+  console.warn('NOTICE: SMTP not configured — verification codes will be logged to the console (dev mode).');
+}
 
 config.google.callbackUrl =
   config.google.callbackUrl || `${config.baseUrl}/auth/google/callback`;
