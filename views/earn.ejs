@@ -1,8 +1,19 @@
 <%- include('partials/header') %>
 
-<h2 style="margin:1.5rem 0 1rem;">Earn points — survey offerwall</h2>
+<h2 style="margin:1.5rem 0 1rem;">Earn points — survey offerwalls</h2>
 <p style="color:var(--muted); margin-bottom:1rem;">Complete surveys below. Points are credited automatically when a survey is completed.</p>
-<iframe class="wall" src="<%= iframeUrl %>" title="Survey offerwall" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"></iframe>
+
+<% if (walls.length > 1) { %>
+<div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+  <% walls.forEach(function(w) { %>
+    <a href="/earn?wall=<%= w.id %>"
+       class="btn <%= w.id === active.id ? '' : 'btn-ghost' %>"
+       style="padding:.5rem 1.1rem; font-size:.95rem;"><%= w.name %></a>
+  <% }); %>
+</div>
+<% } %>
+
+<iframe class="wall" src="<%= active.iframeUrl %>" title="<%= active.name %> offerwall" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"></iframe>
 <p style="color:var(--muted); font-size:.85rem; margin-top:.6rem;">Surveys not loading? Disable your ad-blocker for this site and refresh.</p>
 
 <%- include('partials/footer') %>

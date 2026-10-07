@@ -17,28 +17,14 @@ router.get('/dashboard', requireLogin, (req, res) => {
 
 router.get('/earn', requireLogin, (req, res) => {
   const user = db.findUserById.get(req.user.id);
-  if (config.cpx.appId) {
-    // Build the CPX Research offerwall iframe URL.
-    //   ext_user_id = our user id (mandatory — CPX echoes it back as user_id
-    //                 on the postback so we can credit the right account)
-    //   secure_hash = md5("{ext_user_id}-{app_secure_hash}") (recommended)
-    //   username / email = recommended (email lets CPX match duplicate users)
-    const crypto = require('crypto');
-    const extUserId = String(user.id);
-    const params =
-      `?app_id=${encodeURIComponent(config.cpx.appId)}` +
-      `&ext_user_id=${encodeURIComponent(extUserId)}`;
-    const secureParam = config.cpx.secureKey
-      ? `&secure_hash=${crypto.createHash('md5').update(`${extUserId}-${config.cpx.secureKey}`, 'utf8').digest('hex')}`
-      : '';
-    const identityParam =
-      `&username=${encodeURIComponent(user.name || '')}` +
-      `&email=${encodeURIComponent(user.email || '')}`;
-    const iframeUrl = `${config.cpx.offerwallUrl}${params}${secureParam}${identityParam}`;
-    return res.render('earn', { title: 'Earn points', user, iframeUrl });
+  const { getWalls } = require('../lib/offerwalls');
+  const walls = getWalls(user);
+  if (!walls.length) {
+    // No provider configured yet — show the in-app setup guide instead of a broken iframe.
+    return res.render('earn-setup', { title: 'Earn points', user });
   }
-  // No provider configured yet — show the in-app setup guide instead of a broken iframe.
-  res.render('earn-setup', { title: 'Earn points', user });
+  const active = walls.find((w) => w.id === req.query.wall) || walls[0];
+  res.render('earn', { title: 'Earn points', user, walls, active });
 });
 
 const REDEEM_METHODS = ['PayPal', 'Gift Card', 'Bank Transfer', 'Mobile Money'];
