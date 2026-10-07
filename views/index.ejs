@@ -1,0 +1,20 @@
+<%- include('partials/header') %>
+
+<div class="hero">
+  <h1>Get rewarded for your opinions</h1>
+  <p>Complete surveys from our partners, earn points, and redeem them for cash and gift cards.</p>
+  <% if (currentUser) { %>
+    <a class="btn" href="/earn">Start earning</a>
+  <% } else { %>
+    <a class="btn" href="/auth/signup">Sign up free</a>
+    <a class="btn btn-ghost" href="/auth/login" style="margin-left:.6rem;">Log in</a>
+  <% } %>
+</div>
+
+<div class="steps">
+  <div class="step"><div class="n">1</div><h3>Create an account</h3><p>Sign up with your email or Google in under a minute.</p></div>
+  <div class="step"><div class="n">2</div><h3>Complete surveys</h3><p>Pick surveys from the offerwall and share your opinions.</p></div>
+  <div class="step"><div class="n">3</div><h3>Redeem rewards</h3><p>Turn your points into PayPal cash, gift cards and more.</p></div>
+</div>
+
+<%- include('partials/footer') %>

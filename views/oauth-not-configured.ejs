@@ -1,0 +1,14 @@
+<%- include('partials/header') %>
+
+<div class="card" style="max-width:640px; margin:2rem auto;">
+  <h2>Google sign-in isn't set up yet</h2>
+  <p style="margin:.8rem 0;">The site owner hasn't added Google OAuth credentials. To enable it:</p>
+  <ol class="steps-list">
+    <li>Create an OAuth client in <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> (see README.md for step-by-step instructions).</li>
+    <li>Set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in the <code>.env</code> file.</li>
+    <li>Restart the app — the Google button will start working automatically.</li>
+  </ol>
+  <p style="margin-top:1rem;"><a class="btn btn-ghost" href="/auth/login">Back to login</a></p>
+</div>
+
+<%- include('partials/footer') %>

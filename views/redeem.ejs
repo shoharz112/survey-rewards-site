@@ -1,0 +1,42 @@
+<%- include('partials/header') %>
+
+<h2 style="margin-top:1.5rem;">Redeem points</h2>
+<p style="color:var(--muted);">Balance: <strong style="color:var(--accent);"><%= user.points_balance.toLocaleString() %> pts</strong>
+≈ $<%= (user.points_balance / pointsPerUsd).toFixed(2) %></p>
+
+<div class="card" style="max-width:560px;">
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-ok"><%= success %></div><% } %>
+  <form action="/redeem" method="post">
+    <label for="method">Payout method</label>
+    <select id="method" name="method" required>
+      <% methods.forEach(m => { %><option value="<%= m %>"><%= m %></option><% }) %>
+    </select>
+    <label for="amount_points">Points to redeem</label>
+    <input id="amount_points" name="amount_points" type="number" min="1" max="<%= user.points_balance %>" required placeholder="e.g. 1000">
+    <label for="account_detail">Account detail <span style="font-size:.8rem">(PayPal email, wallet number, etc.)</span></label>
+    <input id="account_detail" name="account_detail" type="text" required maxlength="300" placeholder="Where should we send it?">
+    <button class="btn" type="submit" style="width:100%; margin-top:1rem;">Submit request</button>
+  </form>
+  <p style="margin-top:.8rem; font-size:.85rem; color:var(--muted);">Requests are reviewed manually. Points are reserved immediately and returned if a request is declined.</p>
+</div>
+
+<% if (redemptions.length > 0) { %>
+<div class="card">
+  <h3>Your requests</h3>
+  <table>
+    <tr><th>Date</th><th>Method</th><th>Points</th><th>Detail</th><th>Status</th></tr>
+    <% redemptions.forEach(r => { %>
+      <tr>
+        <td><%= r.created_at.slice(0, 16).replace('T', ' ') %></td>
+        <td><%= r.method %></td>
+        <td><%= r.amount_points %></td>
+        <td><%= r.account_detail %></td>
+        <td><%= r.status %></td>
+      </tr>
+    <% }) %>
+  </table>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>

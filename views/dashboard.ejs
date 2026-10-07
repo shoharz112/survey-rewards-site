@@ -1,0 +1,59 @@
+<%- include('partials/header') %>
+
+<h2 style="margin-top:1.5rem;">Hi, <%= user.name || user.email %> 👋</h2>
+
+<div class="grid2">
+  <div class="card">
+    <div style="color:var(--muted); font-size:.9rem;">Points balance</div>
+    <div class="balance"><%= user.points_balance.toLocaleString() %></div>
+    <div style="margin-top:.8rem;">
+      <a class="btn" href="/earn">Earn points</a>
+      <a class="btn btn-ghost" href="/redeem" style="margin-left:.5rem;">Redeem</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Account</h3>
+    <p style="font-size:.92rem; color:var(--muted);">
+      Email: <%= user.email %><br>
+      Google linked: <%= user.google_id ? 'Yes ✅' : 'No' %><br>
+      Member since: <%= user.created_at.slice(0, 10) %>
+    </p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Recent activity</h3>
+  <% if (entries.length === 0) { %>
+    <p style="color:var(--muted);">No activity yet — <a href="/earn">complete a survey</a> to earn your first points.</p>
+  <% } else { %>
+    <table>
+      <tr><th>Date</th><th>What</th><th>Points</th></tr>
+      <% entries.forEach(e => { %>
+        <tr>
+          <td><%= e.created_at.slice(0, 16).replace('T', ' ') %></td>
+          <td><%= e.reason %></td>
+          <td class="<%= e.delta >= 0 ? 'pos' : 'neg' %>"><%= e.delta >= 0 ? '+' : '' %><%= e.delta %></td>
+        </tr>
+      <% }) %>
+    </table>
+  <% } %>
+</div>
+
+<% if (redemptions.length > 0) { %>
+<div class="card">
+  <h3>Redemption requests</h3>
+  <table>
+    <tr><th>Date</th><th>Method</th><th>Points</th><th>Status</th></tr>
+    <% redemptions.forEach(r => { %>
+      <tr>
+        <td><%= r.created_at.slice(0, 16).replace('T', ' ') %></td>
+        <td><%= r.method %></td>
+        <td><%= r.amount_points %></td>
+        <td><%= r.status %></td>
+      </tr>
+    <% }) %>
+  </table>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>

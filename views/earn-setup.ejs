@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+
+<div class="card" style="max-width:720px; margin:2rem auto;">
+  <h2>Offerwall not connected yet 🔌</h2>
+  <p style="margin:.8rem 0;">This page will show live surveys once the site owner connects a survey provider. Setup takes about 30 minutes:</p>
+  <ol class="steps-list">
+    <li><strong>Sign up as a publisher</strong> with <a href="https://cpx-research.com" target="_blank" rel="noopener">CPX Research</a> (or BitLabs / TheoremReach) and get approved.</li>
+    <li>Copy your <strong>App ID</strong> and the <strong>offerwall URL</strong> from their publisher dashboard.</li>
+    <li>In the site's <code>.env</code> file, set <code>CPX_APP_ID</code> and <code>CPX_OFFERWALL_URL</code>, then restart the app — the live wall appears here automatically.</li>
+    <li>In the provider dashboard, set your <strong>postback URL</strong> to <code><%= 'https://YOUR-DOMAIN' %>/api/postback/cpx</code> so completions credit points automatically.</li>
+    <li>Copy the <strong>secure key</strong> into <code>CPX_SECURE_KEY</code> in <code>.env</code> so postbacks are verified.</li>
+  </ol>
+  <p style="margin-top:1rem; color:var(--muted); font-size:.9rem;">Full walkthrough with screenshots guidance: see <code>README.md</code> → "CPX Research publisher setup".</p>
+  <p style="margin-top:1rem;"><a class="btn btn-ghost" href="/dashboard">Back to dashboard</a></p>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Local environment / secrets — NEVER commit these
+.env
+
+# SQLite database files (created automatically on boot)
+data/*.db
+data/*.db-wal
+data/*.db-shm
