@@ -15,14 +15,6 @@ app.set('views', path.join(__dirname, 'views'));
 // Trust the first proxy (Render/Railway/Heroku) so secure cookies work behind it.
 app.set('trust proxy', 1);
 
-// Shared template locals — registered FIRST so error pages can use them even
-// if a later middleware (e.g. sessions) throws before reaching the routes.
-app.use((req, res, next) => {
-  res.locals.currentUser = req.user || null;
-  res.locals.siteName = config.siteName;
-  next();
-});
-
 // Helmet with CSP disabled: the Earn page embeds the CPX offerwall iframe from
 // an external origin, which a default CSP would block. If you later lock this
 // down, use frame-src to allowlist your offerwall provider instead.
@@ -31,12 +23,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Sessions are persisted in SQLite (not MemoryStore) so logins survive
+// process restarts. Note: on hosts with ephemeral disks (e.g. Render free
+// tier) the DB file itself is wiped on redeploy — a persistent disk fixes
+// that (see README).
+const SQLiteStore = require('connect-sqlite3')(session);
 app.use(
   session({
     name: 'srs.sid',
     secret: config.sessionSecret,
     resave: false,
     saveUninitialized: false,
+    store: new SQLiteStore({
+      db: 'sessions.db',
+      dir: require('path').dirname(require('path').resolve(config.dbPath)),
+    }),
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
@@ -47,6 +48,14 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Shared template locals — must run AFTER passport.session() so req.user is
+// populated; otherwise the nav header never shows the logged-in state.
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user || null;
+  res.locals.siteName = config.siteName;
+  next();
+});
 
 app.use('/auth', require('./routes/auth'));
 app.use('/', require('./routes/pages'));
