@@ -25,7 +25,7 @@ if (!sessionSecret) {
   );
 }
 
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = parseInt(process.env.PORT || process.env.SERVER_PORT || '3000', 10);
 
 const config = {
   env: process.env.NODE_ENV || 'development',
